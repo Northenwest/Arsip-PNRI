@@ -977,7 +977,7 @@ def build_messages(query, hits, stats):
 
 
 def stream_ollama(cfg, messages):
-    payload = {"model": cfg["model"], "messages": messages, "stream": True, "think": cfg["think"],
+    payload = {"model": cfg["model"], "messages": messages, "stream": True, "think": cfg["think"], "keep_alive": -1,
                "options": {"temperature": cfg["temp"], "num_ctx": 8192}}
     with requests.post(cfg["host"].rstrip("/") + "/api/chat", json=payload, stream=True, timeout=(10, 600)) as r:
         if r.status_code != 200:
@@ -1023,13 +1023,25 @@ def llm_stream(cfg, messages):
     return stream_ollama(cfg, messages) if cfg["provider"] == "Ollama" else stream_openai(cfg, messages)
 
 
+def _get_retry(url, tries=2, timeout=8, **kw):
+    """GET dengan timeout longgar dan satu kali ulang, supaya hambatan sesaat lewat Funnel tidak dianggap server mati."""
+    last = None
+    for i in range(tries):
+        try:
+            return requests.get(url, timeout=timeout, **kw)
+        except Exception as e:
+            last = e
+            time.sleep(0.6)
+    raise last
+
+
 def llm_online(cfg) -> bool:
     try:
         if cfg["provider"] == "Ollama":
-            r = requests.get(cfg["host"].rstrip("/") + "/api/tags", timeout=2)
+            r = _get_retry(cfg["host"].rstrip("/") + "/api/tags")
             return r.status_code == 200
-        r = requests.get(cfg["host"].rstrip("/") + "/models", timeout=2,
-                         headers={"Authorization": "Bearer " + cfg["api_key"]} if cfg["api_key"] else {})
+        r = _get_retry(cfg["host"].rstrip("/") + "/models",
+                       headers={"Authorization": "Bearer " + cfg["api_key"]} if cfg["api_key"] else {})
         return r.status_code == 200
     except Exception:
         return False
@@ -1038,7 +1050,7 @@ def llm_online(cfg) -> bool:
 def ollama_models(host: str):
     """Daftar model yang terpasang di Ollama. None bila server tidak bisa dihubungi."""
     try:
-        r = requests.get(host.rstrip("/") + "/api/tags", timeout=2)
+        r = _get_retry(host.rstrip("/") + "/api/tags")
         r.raise_for_status()
         return [m.get("name", "") for m in r.json().get("models", []) if m.get("name")]
     except Exception:
