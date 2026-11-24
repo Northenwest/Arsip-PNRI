@@ -545,8 +545,12 @@ pre code{background:none!important}
   .stats{grid-template-columns:1fr}.sx{border-left:none!important}.sx:nth-child(n+2){border-top:1px solid var(--gline)}
   .fgrid{grid-template-columns:1fr}
 }
+.mob-logo{display:none}
 /* ---------- ponsel & tablet kecil ---------- */
 @media (max-width:900px){
+  .mob-logo{display:flex;justify-content:center;margin:0 0 16px}
+  .mob-logo .plate{display:block;background:#fff;border-radius:14px;padding:7px 14px;box-shadow:0 12px 26px -12px rgba(0,0,0,.7),0 0 0 4px rgba(255,255,255,.12)}
+  .mob-logo img{display:block;height:44px;width:auto}
   [data-testid="stMain"]{margin-left:0!important;width:100%!important;max-width:100%!important}
   [data-testid="stSidebar"]{height:100dvh;max-width:88vw}
   .rail{left:0;right:0;bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -12px 32px -14px rgba(0,0,0,.65)}
@@ -556,7 +560,7 @@ pre code{background:none!important}
   .fab{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:640px){
-  .block-container{padding:3rem .8rem 7.5rem!important}
+  .block-container{padding:3.4rem .8rem 7.5rem!important}
   .rl-nav{gap:0}
   .ri{flex:1 1 0;min-width:0;padding:7px 2px;font-size:9.5px;line-height:1.15;white-space:normal;text-align:center}
   .ri[data-go="ask"],.ri[data-go="foot"]{display:none}
@@ -1465,7 +1469,14 @@ def pick_sample():
     return samp, last_year
 
 
+def mob_logo():
+    """Logo PNRI di tengah atas, hanya tampil di layar ponsel/tablet kecil (di desktop logo ada di rail kiri)."""
+    st.markdown(f'<div class="mob-logo"><span class="plate"><img src="data:image/png;base64,{LOGO_B64}" '
+                'alt="Logo Perum Percetakan Negara RI"></span></div>', unsafe_allow_html=True)
+
+
 def topbar():
+    mob_logo()
     t1, t2 = st.columns([5, 2], gap="medium")
     with t1:
         with st.container(key="topsearch"):
@@ -1763,6 +1774,7 @@ b.onclick = async () => {{
 # BAGIAN 2 : jelajahi data
 # ============================================================================
 def page_data():
+    mob_logo()
     st.markdown('<p class="sec-title" style="margin-top:6px">Jelajahi data</p>'
                 '<p class="imut" style="margin:0 0 14px">Telusuri seluruh entitas Berita Negara dan Tambahan Berita Negara dengan filter.</p>',
                 unsafe_allow_html=True)
