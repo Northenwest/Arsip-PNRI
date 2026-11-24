@@ -133,11 +133,15 @@ body,.stApp,.stMarkdown,.stMarkdown p,input,textarea,button,label,[data-baseweb]
 [data-testid="stHeader"]{background:transparent!important}
 [data-testid="stHeader"] *{color:#dbe7ff!important}
 [data-testid="stDecoration"],#MainMenu,footer{display:none!important}
+/* sembunyikan Deploy, ikon GitHub, menu, status, dan lencana mahkota "Hosted with Streamlit" */
+[data-testid="stHeader"],[data-testid="stToolbar"],[data-testid="stToolbarActions"],[data-testid="stAppDeployButton"],.stAppDeployButton,.stDeployButton,
+[data-testid="stMainMenu"],[data-testid="stStatusWidget"],[data-testid="stBottom"] a[href*="streamlit.io"],
+[class*="viewerBadge"],[class*="_profileContainer"],[class*="profilePreview"],[class*="_link_gzau3"],a[href*="streamlit.io/cloud"],a[href*="share.streamlit.io"]{display:none!important;visibility:hidden!important}
 [data-testid="stSidebarCollapsedControl"],[data-testid="stExpandSidebarButton"],[data-testid="collapsedControl"]{display:none!important}
 [data-testid="stSidebarNav"]{display:none!important}
 [data-testid="stMain"]{margin-left:var(--rail)!important;width:calc(100% - var(--rail))!important;max-width:calc(100% - var(--rail))!important;min-width:0;flex:1 1 0;overflow-x:hidden}
 [data-testid="stMainBlockContainer"]{max-width:100%!important;margin:0!important;width:100%!important;box-sizing:border-box}
-.block-container{padding:1.8rem 2rem 6rem 1.4rem!important;max-width:100%!important;width:100%!important;box-sizing:border-box;margin:0!important;overflow-x:clip}
+.block-container{padding:1.6rem 2rem 6rem 1.4rem!important;max-width:100%!important;width:100%!important;box-sizing:border-box;margin:0!important;overflow-x:clip}
 a{color:var(--sky)!important;text-underline-offset:3px}
 :focus-visible{outline:2.5px solid var(--cyan)!important;outline-offset:2px}
 iframe[height="0"]{display:block}
@@ -560,7 +564,7 @@ pre code{background:none!important}
   .fab{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:640px){
-  .block-container{padding:3.4rem .8rem 7.5rem!important}
+  .block-container{padding:1.6rem .8rem 7.5rem!important}
   .rl-nav{gap:0}
   .ri{flex:1 1 0;min-width:0;padding:7px 2px;font-size:9.5px;line-height:1.15;white-space:normal;text-align:center}
   .ri[data-go="ask"],.ri[data-go="foot"]{display:none}
@@ -615,6 +619,12 @@ JS = r"""
   const DATA_RE = /\/jelajahi-data\/?$/;
   const onData = () => DATA_RE.test(P.location.pathname);
   let sraf = 0, ctimer = 0;
+  const CHROME = '[class*="viewerBadge"],[class*="_profileContainer"],[class*="profilePreview"],[data-testid="stToolbar"],[data-testid="stAppDeployButton"],.stAppDeployButton,[data-testid="stMainMenu"],[data-testid="stStatusWidget"],a[href*="streamlit.io/cloud"],a[href*="share.streamlit.io"]';
+  const hideChrome = () => {
+    D.querySelectorAll(CHROME).forEach(el => el.style.setProperty('display', 'none', 'important'));
+    D.querySelectorAll('a[href*="github.com"]').forEach(a => { if (!a.closest('[data-testid="stMain"]') && !a.closest('[data-testid="stSidebar"]')) a.style.setProperty('display', 'none', 'important'); });
+  };
+  hideChrome();
   const bar = D.createElement('div'); bar.className = 'mj-bar'; bar.innerHTML = '<i></i>'; D.body.appendChild(bar);
 
   /* ---------- tujuan navigasi ---------- */
@@ -773,12 +783,12 @@ JS = r"""
   const scan = n => { if (n.matches && n.matches(SEL)) cu(n); n.querySelectorAll && n.querySelectorAll(SEL).forEach(cu); };
   const mo = new P.MutationObserver(ms => {
     ms.forEach(m => m.addedNodes.forEach(n => n.nodeType === 1 && scan(n)));
-    clearTimeout(ctimer); ctimer = setTimeout(centerActive, 140);
+    clearTimeout(ctimer); ctimer = setTimeout(() => { centerActive(); hideChrome(); }, 140);
   });
   mo.observe(D.body, {childList: true, subtree: true});
   setTimeout(() => scan(D.body), 300);
 
-  const iv = setInterval(sync, 600); sync();
+  const iv = setInterval(() => { sync(); hideChrome(); }, 600); sync();
   D.addEventListener('scroll', onScroll, {passive: true, capture: true});
   D.addEventListener('keydown', kd);
   D.addEventListener('mousemove', mv, {passive: true});
